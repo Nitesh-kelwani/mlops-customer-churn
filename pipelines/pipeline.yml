@@ -1,0 +1,48 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+
+name: churn_prediction_pipeline
+display_name: "Customer Churn Prediction – End-to-End MLOps"
+description: >
+  End-to-end pipeline: ingest from Azure Blob Storage → preprocess →
+  SMOTE → train ensemble (AdaBoost + Random Forest) → log to Azure ML.
+type: pipeline
+
+experiment_name: churn-prediction
+
+settings:
+  default_compute: azureml:cpu-cluster
+  default_datastore: azureml:workspaceblobstore
+  continue_on_step_failure: false
+
+inputs:
+  blob_container: mlops-churn
+  blob_file: churn.csv
+  n_estimators: 100
+  test_size: 0.2
+  random_state: 42
+
+outputs:
+  trained_model:
+    type: uri_folder
+
+jobs:
+  ingest_step:
+    type: command
+    component: file:./ingest_component.yml
+    inputs:
+      blob_container: ${{parent.inputs.blob_container}}
+      blob_file: ${{parent.inputs.blob_file}}
+    outputs:
+      raw_data:
+        mode: rw_mount
+
+  train_step:
+    type: command
+    component: file:./train_component.yml
+    inputs:
+      raw_data: ${{jobs.ingest_step.outputs.raw_data}}
+      n_estimators: ${{parent.inputs.n_estimators}}
+      test_size: ${{parent.inputs.test_size}}
+      random_state: ${{parent.inputs.random_state}}
+    outputs:
+      model_output: ${{parent.outputs.trained_model}}

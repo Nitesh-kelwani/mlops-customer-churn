@@ -1,0 +1,133 @@
+# azure-pipelines.yml
+# Azure DevOps CI/CD pipeline for the Customer Churn Prediction MLOps project.
+# Stages: Build → Test → Deploy (ACI)
+#
+# Required Variable Groups (set in Azure DevOps Library):
+#   mlops-secrets:
+#     ACR_NAME, ACR_PASSWORD, AZURE_SUBSCRIPTION_ID,
+#     AZURE_RESOURCE_GROUP, ACI_CONTAINER_GROUP, ACI_LOCATION
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    exclude:
+      - README.md
+      - "**/*.md"
+
+variables:
+  pythonVersion: "3.9"
+  acrImage: "churn-api"
+  imageTag: "$(Build.BuildId)"
+
+stages:
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STAGE 1 – BUILD
+# ─────────────────────────────────────────────────────────────────────────────
+- stage: Build
+  displayName: "Build & Push Docker Image"
+  jobs:
+  - job: Docker
+    displayName: "docker build → ACR push"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: "Build image"
+      inputs:
+        command: build
+        dockerfile: "$(Build.SourcesDirectory)/docker/Dockerfile"
+        buildContext: "$(Build.SourcesDirectory)"
+        tags: |
+          $(acrImage):$(imageTag)
+          $(acrImage):latest
+
+    - task: Docker@2
+      displayName: "Push to ACR"
+      inputs:
+        command: push
+        containerRegistry: "ACR_Service_Connection"   # set in Azure DevOps
+        repository: "$(acrImage)"
+        tags: |
+          $(imageTag)
+          latest
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STAGE 2 – TEST
+# ─────────────────────────────────────────────────────────────────────────────
+- stage: Test
+  displayName: "Run Unit Tests"
+  dependsOn: Build
+  jobs:
+  - job: UnitTests
+    displayName: "Python unit tests"
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: "$(pythonVersion)"
+
+    - script: pip install -r requirements.txt
+      displayName: "Install dependencies"
+
+    - script: |
+        python -c "
+        from preprocess_pipeline import CustomPreprocessor
+        from src.ingest import download_from_blob
+        from src.train import train_model
+        print('All imports OK')
+        "
+      displayName: "Import smoke test"
+
+    - script: |
+        python src/train.py --local
+      displayName: "Local training dry-run (accuracy + AUC-ROC check)"
+      env:
+        PYTHONPATH: $(Build.SourcesDirectory)
+
+    - task: PublishTestResults@2
+      condition: always()
+      inputs:
+        testResultsFiles: "**/*test*.xml"
+        failTaskOnFailedTests: false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# STAGE 3 – DEPLOY (ACI)
+# ─────────────────────────────────────────────────────────────────────────────
+- stage: Deploy
+  displayName: "Deploy to ACI"
+  dependsOn: Test
+  condition: succeeded()
+  jobs:
+  - deployment: DeployACI
+    displayName: "Deploy REST endpoint to Azure Container Instances"
+    pool:
+      vmImage: ubuntu-latest
+    environment: production
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: "$(pythonVersion)"
+
+          - script: pip install azure-mgmt-containerinstance azure-identity
+            displayName: "Install Azure deployment SDK"
+
+          - script: python deploy/deploy_aci.py
+            displayName: "Deploy to ACI"
+            env:
+              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+              AZURE_RESOURCE_GROUP: $(AZURE_RESOURCE_GROUP)
+              ACI_RESOURCE_GROUP: $(AZURE_RESOURCE_GROUP)
+              ACI_CONTAINER_GROUP: $(ACI_CONTAINER_GROUP)
+              ACI_LOCATION: $(ACI_LOCATION)
+              ACR_NAME: $(ACR_NAME)
+              ACR_PASSWORD: $(ACR_PASSWORD)
+              ACR_IMAGE: "$(acrImage):$(imageTag)"

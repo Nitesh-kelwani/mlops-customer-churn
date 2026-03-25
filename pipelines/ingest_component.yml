@@ -1,0 +1,34 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+
+name: churn_ingest
+version: "1"
+display_name: "Customer Churn – Data Ingestion"
+description: "Downloads customer churn CSV from Azure Blob Storage."
+type: command
+
+inputs:
+  blob_connection_string:
+    type: string
+    optional: true
+  blob_container:
+    type: string
+    default: "mlops-churn"
+  blob_file:
+    type: string
+    default: "churn.csv"
+
+outputs:
+  raw_data:
+    type: uri_folder
+
+code: ../src
+
+environment:
+  conda_file: ../environment.yml
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
+
+command: >-
+  python ingest.py
+  --output ${{outputs.raw_data}}
+  --blob-container ${{inputs.blob_container}}
+  --blob-file ${{inputs.blob_file}}
