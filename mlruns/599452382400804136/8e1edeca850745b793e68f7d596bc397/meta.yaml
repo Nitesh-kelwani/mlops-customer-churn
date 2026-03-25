@@ -1,0 +1,14 @@
+artifact_uri: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/8e1edeca850745b793e68f7d596bc397/artifacts
+end_time: 1774445205372
+entry_point_name: ''
+experiment_id: '599452382400804136'
+lifecycle_stage: active
+run_id: 8e1edeca850745b793e68f7d596bc397
+run_name: chill-skunk-610
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774445129167
+status: 3
+tags: []
+user_id: goodn

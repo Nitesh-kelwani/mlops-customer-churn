@@ -1,0 +1,14 @@
+artifact_uri: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/9a7e34056fb54f47903d0251ec06ddf3/artifacts
+end_time: 1774448310436
+entry_point_name: ''
+experiment_id: '599452382400804136'
+lifecycle_stage: active
+run_id: 9a7e34056fb54f47903d0251ec06ddf3
+run_name: nervous-kite-863
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774448268808
+status: 3
+tags: []
+user_id: goodn

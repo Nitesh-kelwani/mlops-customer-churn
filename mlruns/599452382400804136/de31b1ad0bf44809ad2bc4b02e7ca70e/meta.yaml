@@ -1,0 +1,14 @@
+artifact_uri: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/de31b1ad0bf44809ad2bc4b02e7ca70e/artifacts
+end_time: 1774444769803
+entry_point_name: ''
+experiment_id: '599452382400804136'
+lifecycle_stage: active
+run_id: de31b1ad0bf44809ad2bc4b02e7ca70e
+run_name: monumental-ape-495
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774444648871
+status: 3
+tags: []
+user_id: goodn

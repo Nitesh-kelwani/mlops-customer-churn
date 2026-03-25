@@ -29,8 +29,27 @@ from preprocess_pipeline import CustomPreprocessor
 from src.config import (
     DATA_PATH, MODEL_PATH, TARGET_COL,
     SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME,
-    MODEL_NAME, EXPERIMENT_NAME,
+    MODEL_NAME, EXPERIMENT_NAME, BLOB_CONN_STR, BLOB_CONTAINER, BLOB_FILE
 )
+
+
+def download_from_blob(dest_path: str = DATA_PATH) -> str:
+    """Download raw CSV from Azure Blob Storage to dest_path."""
+    if not BLOB_CONN_STR:
+        print("[train] No AZURE_STORAGE_CONNECTION_STRING found – skipping Blob download.")
+        return dest_path
+
+    from azure.storage.blob import BlobServiceClient
+    print(f"[train] Connecting to Azure Blob Storage (container={BLOB_CONTAINER}, blob={BLOB_FILE}) …")
+    client = BlobServiceClient.from_connection_string(BLOB_CONN_STR)
+    blob   = client.get_blob_client(container=BLOB_CONTAINER, blob=BLOB_FILE)
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    with open(dest_path, "wb") as f:
+        f.write(blob.download_blob().readall())
+
+    print(f"[train] Downloaded '{BLOB_FILE}' -> '{dest_path}'")
+    return dest_path
 
 
 def get_mlflow_tracking_uri() -> str:
@@ -77,7 +96,6 @@ def register_model_azure(run_id: str, model_path: str) -> None:
 def train_model(local: bool = False) -> None:
     # ── Data ingestion ────────────────────────────────────────────────────────
     if not local:
-        from src.ingest import download_from_blob
         download_from_blob()
 
     df = pd.read_csv(DATA_PATH)

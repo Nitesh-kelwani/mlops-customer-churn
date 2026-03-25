@@ -1,0 +1,7 @@
+artifact_location: file:D:/ds_meterial/mlops project/mlruns/599452382400804136
+creation_time: 1774444121651
+experiment_id: '599452382400804136'
+last_update_time: 1774444121651
+lifecycle_stage: active
+name: churn-prediction
+workspace: default

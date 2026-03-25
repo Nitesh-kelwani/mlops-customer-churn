@@ -1,0 +1,14 @@
+artifact_uri: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/6d4ff3e8eb4a432184963d4cc980afb2/artifacts
+end_time: 1774444435248
+entry_point_name: ''
+experiment_id: '599452382400804136'
+lifecycle_stage: active
+run_id: 6d4ff3e8eb4a432184963d4cc980afb2
+run_name: bold-elk-610
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774444359465
+status: 3
+tags: []
+user_id: goodn

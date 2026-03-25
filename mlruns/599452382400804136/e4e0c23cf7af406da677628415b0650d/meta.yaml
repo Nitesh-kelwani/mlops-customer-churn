@@ -1,0 +1,14 @@
+artifact_uri: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/e4e0c23cf7af406da677628415b0650d/artifacts
+end_time: 1774444256818
+entry_point_name: ''
+experiment_id: '599452382400804136'
+lifecycle_stage: active
+run_id: e4e0c23cf7af406da677628415b0650d
+run_name: persistent-gnat-183
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774444122265
+status: 4
+tags: []
+user_id: goodn

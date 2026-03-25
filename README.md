@@ -28,15 +28,15 @@ Azure Blob Storage
        │  churn.csv
        ▼
 ┌──────────────────┐      ┌──────────────────────────────────┐
-│  Azure ML        │      │  Training Pipeline               │
+│  Azure ML        │      │  Training Command (train.py)     │
 │  Pipeline        │─────▶│  CustomPreprocessor + SMOTE      │
-│  (pipeline.yml)  │      │  VotingClassifier (Ada + RF)     │
+│  (azure_pipeline)│      │  RandomForest Classifier         │
 └──────────────────┘      │  MLflow logging + Model Registry │
                           └──────────────┬───────────────────┘
                                          │ registered model
                           ┌──────────────▼───────────────────┐
                           │  Azure DevOps CI/CD              │
-                          │  Build → Test → Deploy           │
+                          │  Build → Test → Deploy (AZ CLI)  │
                           └──────────────┬───────────────────┘
                                          │ Docker image → ACR
                           ┌──────────────▼───────────────────┐
@@ -54,24 +54,16 @@ Azure Blob Storage
 ```
 mlops project/
 ├── src/
-│   ├── config.py              # All config constants + env vars
-│   ├── ingest.py              # Azure Blob Storage data ingestion
+│   ├── config.py              # Configuration & Environment Variables
 │   ├── preprocess.py          # CustomPreprocessor (sklearn compatible)
-│   ├── train.py               # SMOTE + ensemble training + MLflow logging
+│   ├── train.py               # Ingestion, SMOTE, Training, and MLflow logging
 │   └── evaluate.py            # Model evaluation utilities
 ├── preprocess_pipeline.py     # Standalone preprocessor (used by Docker)
 ├── pipelines/
-│   ├── ingest_component.yml   # Azure ML ingest component spec
-│   ├── train_component.yml    # Azure ML train component spec
-│   ├── pipeline.yml           # Azure ML pipeline definition
-│   └── run_pipeline.py        # CLI to submit the pipeline
-├── deploy/
-│   └── deploy_aci.py          # ACI deployment script
+│   └── azure_pipeline.py      # Azure ML Pipeline SDK script
 ├── docker/
 │   ├── app.py                 # FastAPI inference service
 │   └── Dockerfile             # Container image definition
-├── model/                     # Saved pipeline artifacts
-├── data/raw/                  # Raw CSV data
 ├── azure-pipelines.yml        # Azure DevOps CI/CD pipeline
 └── requirements.txt
 ```
@@ -80,33 +72,32 @@ mlops project/
 
 ## 🔹 Pipeline Steps
 
-### 1. Data Ingestion (`src/ingest.py`)
-Downloads `churn.csv` from **Azure Blob Storage** into `data/raw/`. Falls back to the local file if Azure credentials are not configured (for local development).
-
-### 2. Preprocessing (`preprocess_pipeline.py`)
-- Fixes `TotalCharges` (numeric coercion + median imputation)
+### 1. Data Ingestion & Preprocessing (`src/train.py`)
+Downloads `churn.csv` directly from **Azure Blob Storage** into `data/raw/` at the start of the training run.
+Preprocessing includes:
+- Fixing `TotalCharges` (numeric coercion + median imputation)
 - Binary encoding with `LabelEncoder`
 - Multi-class encoding with `pd.get_dummies`
 - Feature scaling with `StandardScaler`
 
-### 3. SMOTE (`src/train.py`)
+### 2. SMOTE (`src/train.py`)
 Applied **after** train/test split on the training set only, to prevent data leakage.
 
-### 4. Ensemble Training
-Soft-voting `VotingClassifier` combining:
+### 3. Model Training & Selection (`src/train.py`)
+Independently trains:
 - `AdaBoostClassifier(n_estimators=100)`
 - `RandomForestClassifier(n_estimators=100)`
 
-Achieves **82% accuracy** and **0.84 AUC-ROC** on the hold-out test set.
+Selects the best performing model. The chosen **Random Forest** achieves **~82% accuracy** and **0.84 AUC-ROC** on the hold-out test set.
 
-### 5. Experiment Tracking & Model Versioning
-Metrics and parameters are logged to **Azure ML via MLflow**. The model is registered in the **Azure ML Model Registry** with automatic versioning after each successful training run.
+### 4. Experiment Tracking & Model Versioning
+Metrics and parameters are logged to **Azure ML via MLflow**. The best model is registered in the **Azure ML Model Registry** with automatic versioning after each successful training run.
 
-### 6. CI/CD – Azure DevOps (`azure-pipelines.yml`)
+### 5. CI/CD – Azure DevOps (`azure-pipelines.yml`)
 Triggered on every merge to `main`:
 1. **Build** – `docker build` + push image to ACR
 2. **Test** – import smoke test + local training dry-run
-3. **Deploy** – deploy Docker image to ACI via `deploy/deploy_aci.py`
+3. **Deploy** – deploy Docker image to ACI using native **Azure CLI** commands
 
 ---
 

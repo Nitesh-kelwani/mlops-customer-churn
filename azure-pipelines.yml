@@ -117,17 +117,17 @@ stages:
             inputs:
               versionSpec: "$(pythonVersion)"
 
-          - script: pip install azure-mgmt-containerinstance azure-identity
-            displayName: "Install Azure deployment SDK"
-
-          - script: python deploy/deploy_aci.py
-            displayName: "Deploy to ACI"
-            env:
-              AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-              AZURE_RESOURCE_GROUP: $(AZURE_RESOURCE_GROUP)
-              ACI_RESOURCE_GROUP: $(AZURE_RESOURCE_GROUP)
-              ACI_CONTAINER_GROUP: $(ACI_CONTAINER_GROUP)
-              ACI_LOCATION: $(ACI_LOCATION)
-              ACR_NAME: $(ACR_NAME)
-              ACR_PASSWORD: $(ACR_PASSWORD)
-              ACR_IMAGE: "$(acrImage):$(imageTag)"
+          - script: |
+              az login --service-principal -u $(AZURE_CLIENT_ID) -p $(AZURE_CLIENT_SECRET) --tenant $(AZURE_TENANT_ID)
+              az container create \
+                --resource-group $(AZURE_RESOURCE_GROUP) \
+                --name $(ACI_CONTAINER_GROUP) \
+                --image "$(acrImage):$(imageTag)" \
+                --registry-login-server $(ACR_NAME).azurecr.io \
+                --registry-username $(ACR_NAME) \
+                --registry-password $(ACR_PASSWORD) \
+                --dns-name-label $(ACI_CONTAINER_GROUP) \
+                --ports 80 \
+                --cpu 1 --memory 1.5 \
+                --environment-variables PORT=80
+            displayName: "Deploy to ACI via Azure CLI"

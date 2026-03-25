@@ -8,7 +8,5 @@ imbalanced-learn
 azure-storage-blob
 azure-ai-ml
 azure-identity
-azure-mgmt-containerinstance
-azure-mgmt-resource
 mlflow
 azureml-mlflow

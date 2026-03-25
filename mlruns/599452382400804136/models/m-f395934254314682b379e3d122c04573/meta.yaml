@@ -1,0 +1,10 @@
+artifact_location: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/models/m-f395934254314682b379e3d122c04573/artifacts
+creation_timestamp: 1774444745834
+experiment_id: '599452382400804136'
+last_updated_timestamp: 1774444769680
+model_id: m-f395934254314682b379e3d122c04573
+model_type: null
+name: ensemble_model
+source_run_id: de31b1ad0bf44809ad2bc4b02e7ca70e
+status: 2
+status_message: null

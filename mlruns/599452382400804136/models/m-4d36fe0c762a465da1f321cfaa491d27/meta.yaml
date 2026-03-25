@@ -1,0 +1,10 @@
+artifact_location: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/models/m-4d36fe0c762a465da1f321cfaa491d27/artifacts
+creation_timestamp: 1774445782287
+experiment_id: '599452382400804136'
+last_updated_timestamp: 1774445788677
+model_id: m-4d36fe0c762a465da1f321cfaa491d27
+model_type: null
+name: best_model
+source_run_id: 888f2fd5dc8340aab630144bf157572b
+status: 2
+status_message: null

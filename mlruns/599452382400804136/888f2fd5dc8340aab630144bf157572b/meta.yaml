@@ -1,0 +1,14 @@
+artifact_uri: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/888f2fd5dc8340aab630144bf157572b/artifacts
+end_time: 1774445788711
+entry_point_name: ''
+experiment_id: '599452382400804136'
+lifecycle_stage: active
+run_id: 888f2fd5dc8340aab630144bf157572b
+run_name: hilarious-moose-42
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774445745623
+status: 3
+tags: []
+user_id: goodn

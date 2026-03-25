@@ -1,0 +1,14 @@
+artifact_uri: file:D:/ds_meterial/mlops project/mlruns/599452382400804136/637063e837c24e51914d5133e2411e70/artifacts
+end_time: 1774445619000
+entry_point_name: ''
+experiment_id: '599452382400804136'
+lifecycle_stage: active
+run_id: 637063e837c24e51914d5133e2411e70
+run_name: thoughtful-cow-908
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1774445514452
+status: 4
+tags: []
+user_id: goodn
